@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -18,8 +19,9 @@ public class Activity2 extends AppCompatActivity {
         setContentView(R.layout.activity_2);
 
         Intent intent = getIntent();
-        String str = intent.getStringExtra("name");
-        String str2 = intent.getStringExtra("age");
+        intent.setClass(this, MainActivity.class);
+        String str = intent.getStringExtra("username");
+        String str2 = intent.getStringExtra("password");
         String str3 = intent.getStringExtra("gender");
 
         TextView msg = findViewById(R.id.textView);
@@ -30,4 +32,17 @@ public class Activity2 extends AppCompatActivity {
         age.setText("Age: " + str2);
         sex.setText("Gender: " + str3);
     }
+/*
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == android.R.id.home) {
+
+            onBackPressed();  return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+ */
 }
