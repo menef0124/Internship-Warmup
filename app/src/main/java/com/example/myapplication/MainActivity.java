@@ -23,6 +23,13 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,29 +38,38 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener{
 
+    private Button logout;
     private EditText et;
     private Switch sw1;
     private Switch sw2;
     private Spinner spin;
     private String[] ages = new String[20];
     private Intent intent;
-    private int j = 20;
+    private int j = 18;
+    private static String id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
+
         findViewById(android.R.id.content).setFocusableInTouchMode(true);
 
-        for(int i = 0; i < ages.length; i++){
+        ages[0] = "Select Your Age";
+        for(int i = 1; i < ages.length; i++){
             ages[i] = Integer.toString(j);
             ++j;
         }
 
+        logout = findViewById(R.id.button4);
         et = findViewById(R.id.nameTF);
         sw1 = findViewById(R.id.switch1);
         sw2 = findViewById(R.id.switch2);
@@ -64,10 +80,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         String password = intent.getStringExtra("password");
 
         try {
-            downloadJSON("http://10.0.2.2/hello_get.php?username=" + username + "&password=" + password);
+            downloadJSON("http://10.0.2.2/androidLogin_get.php?username=" + username + "&password=" + password);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        logout.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                finish();
+            }
+        });
 
         et.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -125,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position,long id){
-        Toast.makeText(arg0.getContext(), ages[position], Toast.LENGTH_LONG).show();
     }
     @Override
     public void onNothingSelected(AdapterView<?> arg0){
@@ -153,7 +175,40 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 switchError();
             }
             else {
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, "http://10.0.2.2/processSave.php",
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                if(response.equals("FAILED"))
+                                    Toast.makeText(getApplicationContext(), "FAILED", Toast.LENGTH_SHORT).show();
+                                else
+                                    Toast.makeText(getApplicationContext(), "Info Saved!", Toast.LENGTH_SHORT).show();
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(MainActivity.this, error+"", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                ) {
+                    @Override
+                    protected Map<String, String> getParams()
+                    {
+                        Map<String, String> params = new HashMap<String, String>();
+                        params.put("id", id);
+                        params.put("firstName", et.getText().toString());
+                        params.put("age", spin.getSelectedItem().toString());
+                        if(sw1.isChecked())
+                            params.put("sex", "Male");
+                        else
+                            params.put("sex", "Female");
+                        return params;
+                    }
+                };
 
+                RequestQueue requestQueue = Volley.newRequestQueue(this);
+                requestQueue.add(stringRequest);
+/*
                 Intent intent = new Intent(this, Activity2.class);
                 String message = et.getText().toString();
                 String gender;
@@ -169,6 +224,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 intent.putExtra("gender", gender);
                 intent.putExtra("age", age);
                 startActivity(intent);
+
+ */
             }
     }
 
@@ -185,19 +242,29 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                if(s.equals("FAILURE") || s.equals("FAILED")){
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Toast.makeText(getApplicationContext(), "SUCCESS", Toast.LENGTH_SHORT).show();
+                }
                 try {
                     JSONArray jsonArray = new JSONArray(s);
                     JSONObject obj = jsonArray.getJSONObject(0);
+                    id = obj.getString("id");
                     et.setText(obj.getString("firstName"));
 
                     if(obj.getString("sex").equals("M")){
                         sw1.setChecked(true);
                         sw2.setChecked(false);
                     }
-                    else{
+                    else if(obj.getString("sex").equals("F")){
                         sw1.setChecked(false);
                         sw2.setChecked(true);
+                    }
+                    else{
+                        sw1.setChecked(false);
+                        sw2.setChecked(false);
                     }
 
                     for(int i = 0; i < ages.length; i++){
@@ -206,17 +273,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             break;
                         }
                     }
-
-                    /*
-                    String[] stocks = new String[jsonArray.length()];
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject obj = jsonArray.getJSONObject(i);
-                        stocks[i] = obj.getString("name") + " " + obj.getString("price");
-                    }
-                     */
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
             }
 
             @Override

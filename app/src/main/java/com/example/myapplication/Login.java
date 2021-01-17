@@ -18,6 +18,7 @@ import android.view.View.OnKeyListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -32,7 +33,10 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Login extends AppCompatActivity {
 
@@ -62,7 +66,8 @@ public class Login extends AppCompatActivity {
                     if (imm != null) imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
                     //sendLoginRequest("http://wfm.auto1stop.com/api/login.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
-                    sendLoginRequest("http://10.0.2.2/hello_get.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
+                    sendLoginRequestPost("http://10.0.2.2/androidLogin_post.php");
+                    //sendLoginRequestGet("http://10.0.2.2/androidLogin_get.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
 
                     return true;
                 }
@@ -74,7 +79,8 @@ public class Login extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //sendLoginRequest("http://wfm.auto1stop.com/api/login.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
-                sendLoginRequest("http://10.0.2.2/hello_get.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
+                sendLoginRequestPost("http://10.0.2.2/androidLogin_post.php");
+                //sendLoginRequestGet("http://10.0.2.2/androidLogin_get.php?username=" + user.getText().toString() + "&password=" + pass.getText().toString());
             }
         });
     }
@@ -110,13 +116,72 @@ public class Login extends AppCompatActivity {
         }
     }
 
-    public void sendLoginRequest(String URL){
+
+
+    public void sendLoginRequestPost(String URL){
+
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.matches("FAILURE") || response.matches("FAILED")) {
+
+                            user.setText("");
+                            pass.setText("");
+
+                            user.clearFocus();
+                            pass.clearFocus();
+
+                            loginError.setText(getResources().getString(R.string.loginErrorMessage));
+                            loginError.setVisibility(View.VISIBLE);
+
+                        }
+                        else {
+
+                            Intent goToHome = new Intent(Login.this, MainActivity.class);
+                            goToHome.putExtra("username", user.getText().toString());
+                            goToHome.putExtra("password", pass.getText().toString());
+
+                            user.setText("");
+                            pass.setText("");
+
+                            user.clearFocus();
+                            pass.clearFocus();
+
+                            loginError.setVisibility(View.INVISIBLE);
+                            loginError.setText("");
+
+                            startActivity(goToHome);
+
+                        }
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(Login.this, error+"", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams()
+            {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("username", user.getText().toString());
+                params.put("password", pass.getText().toString());
+                return params;
+            }
+        };
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+    }
+    public void sendLoginRequestGet(String URL){
         StringRequest stringRequest = new StringRequest(Request.Method.GET, URL, new Response.Listener<String>() {
 
             @Override
             public void onResponse(String response) {
 
-                if (response.matches("FAILURE")) {
+                if (response.matches("FAILURE") || response.matches("FAILED")) {
 
                     user.setText("");
                     pass.setText("");

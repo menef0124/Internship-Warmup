@@ -6,23 +6,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 public class Activity2 extends AppCompatActivity {
+
+    private Intent intent;
+    private Intent backIntent;
+    private Button backBtn;
+    private Button homeBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_2);
 
-        Intent intent = getIntent();
-        intent.setClass(this, MainActivity.class);
-        String str = intent.getStringExtra("username");
-        String str2 = intent.getStringExtra("password");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(false);
+
+        backIntent = new Intent(this, MainActivity.class);
+        intent = getIntent();
+        //intent.setClass(this, MainActivity.class);
+        String str = intent.getStringExtra("name");
+        String str2 = intent.getStringExtra("age");
         String str3 = intent.getStringExtra("gender");
+
+        backBtn = findViewById(R.id.button2);
+        homeBtn = findViewById(R.id.button3);
 
         TextView msg = findViewById(R.id.textView);
         TextView age = findViewById(R.id.textView2);
@@ -31,18 +42,34 @@ public class Activity2 extends AppCompatActivity {
         msg.setText("Hello, " + str + "!");
         age.setText("Age: " + str2);
         sex.setText("Gender: " + str3);
+
+        backBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                //backIntent = new Intent(this, MainActivity.class);
+                backIntent.putExtra("username", intent.getStringExtra("username"));
+                backIntent.putExtra("password", intent.getStringExtra("password"));
+                backIntent.putExtra("name", intent.getStringExtra("name"));
+                backIntent.putExtra("gender", intent.getStringExtra("gender"));
+                backIntent.putExtra("age", intent.getStringExtra("age"));
+
+                startActivity(backIntent);
+                finish();
+            }
+        });
     }
-/*
+
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+    public void onBackPressed(){
+        backIntent = new Intent(this, MainActivity.class);
+        backIntent.putExtra("username", this.intent.getStringExtra("username"));
+        backIntent.putExtra("password", this.intent.getStringExtra("password"));
+        backIntent.putExtra("name", this.intent.getStringExtra("name"));
+        backIntent.putExtra("gender", this.intent.getStringExtra("gender"));
+        backIntent.putExtra("age", this.intent.getStringExtra("age"));
 
-        if (id == android.R.id.home) {
-
-            onBackPressed();  return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        startActivity(backIntent);
+        finish();
     }
- */
+
 }
