@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 switchError();
             }
             else {
-                StringRequest stringRequest = new StringRequest(Request.Method.POST, "http://10.0.2.2/processSave.php",
+                StringRequest stringRequest = new StringRequest(Request.Method.POST, "http://10.0.2.2/androidSave.php",
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(MainActivity.this, error+"", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, error + "", Toast.LENGTH_SHORT).show();
                     }
                 }
                 ) {
@@ -236,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
+                Toast.makeText(getApplicationContext(), "Gathering data...", Toast.LENGTH_SHORT).show();
             }
 
 
@@ -247,35 +248,37 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
                 else{
                     Toast.makeText(getApplicationContext(), "SUCCESS", Toast.LENGTH_SHORT).show();
-                }
-                try {
-                    JSONArray jsonArray = new JSONArray(s);
-                    JSONObject obj = jsonArray.getJSONObject(0);
-                    id = obj.getString("id");
-                    et.setText(obj.getString("firstName"));
+                    try {
+                        JSONArray jsonArray = new JSONArray(s);
+                        JSONObject obj = jsonArray.getJSONObject(0);
+                        id = obj.getString("id");
+                        et.setText(obj.getString("firstName"));
 
-                    if(obj.getString("sex").equals("M")){
-                        sw1.setChecked(true);
-                        sw2.setChecked(false);
-                    }
-                    else if(obj.getString("sex").equals("F")){
-                        sw1.setChecked(false);
-                        sw2.setChecked(true);
-                    }
-                    else{
-                        sw1.setChecked(false);
-                        sw2.setChecked(false);
-                    }
+                        if(obj.getString("sex").equals("M")){
+                            sw1.setChecked(true);
+                            sw2.setChecked(false);
+                        }
+                        else if(obj.getString("sex").equals("F")){
+                            sw1.setChecked(false);
+                            sw2.setChecked(true);
+                        }
+                        else{
+                            sw1.setChecked(false);
+                            sw2.setChecked(false);
+                        }
 
-                    for(int i = 0; i < ages.length; i++){
-                        if(obj.getString("age").equals(ages[i])){
-                            spin.setSelection(i);
-                            break;
+                        for(int i = 0; i < ages.length; i++){
+                            if(obj.getString("age").equals(ages[i])){
+                                spin.setSelection(i);
+                                break;
+                            }
                         }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
+
 
             }
 
